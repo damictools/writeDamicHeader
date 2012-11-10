@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <vector>
 #include <algorithm>
 #include <unistd.h>
 
@@ -140,6 +141,21 @@ int processCommandLineArgs(const int argc, char *argv[], string &fitsFile, strin
 }
 
 
+bool keepThisCard(const char *card){
+  
+  vector<string> cardList;
+  cardList.push_back("BZERO   ");
+  cardList.push_back("BSCALE  ");
+  cardList.push_back("TRIMSEC ");
+  cardList.push_back("DATASEC ");
+  
+  for(unsigned int i=0;i<cardList.size();++i){
+    if(strncmp(card,cardList[i].c_str(),8) ==0)
+      return true;
+  }
+  
+  return false;
+}
 
 
 
@@ -176,10 +192,15 @@ int main(int argc, char *argv[])
     
     int nkeys=0;
     fits_get_hdrspace(fptr, &nkeys, NULL, &status);
+    
+    /* delete all non-essential entries */
     for (int i = 1; i <= nkeys; ++i) {
       char card[FLEN_CARD];
       fits_read_record(fptr, i, card, &status);
+
       if (fits_get_keyclass(card) <= TYP_CMPRS_KEY) continue;
+      if(keepThisCard(card)) continue;
+      
       fits_delete_record(fptr, i,  &status);
       fits_get_hdrspace(fptr, &nkeys, NULL, &status);
       i=1;
