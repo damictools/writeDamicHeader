@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include "fitsio.h"
 
+
+#include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -27,7 +29,7 @@ bool fileExist(const char *fileName){
   return true;
 }
 
-bool readStatsFile(const string &statsFile, map<string,float> &mCards){
+bool readStatsFile(const string &statsFile, map<string,double> &mCards){
   
   mCards.clear();
   ifstream in(statsFile.c_str());
@@ -59,7 +61,7 @@ bool readStatsFile(const string &statsFile, map<string,float> &mCards){
     iss.seekg(ios_base::beg);
     
     string cardName = "";
-    float value = -1000;
+    double value = -1000;
     iss >> cardName >> value;
     std::transform(cardName.begin(), cardName.end(),cardName.begin(), ::toupper);
     
@@ -170,7 +172,7 @@ int main(int argc, char *argv[])
     return statusArg;
   }
   
-  map<string,float> mCards;
+  map<string,double> mCards;
   readStatsFile(statsFile, mCards);
   
   fitsfile *fptr;         /* FITS file pointer, defined in fitsio.h */
@@ -215,11 +217,11 @@ int main(int argc, char *argv[])
     }
     
     
-    for ( map<string,float>::const_iterator mIt = mCards.begin();mIt != mCards.end(); ++mIt ){
+    for ( map<string,double>::const_iterator mIt = mCards.begin();mIt != mCards.end(); ++mIt ){
       const char *keyname = mIt->first.c_str();
       char comment[FLEN_COMMENT] = "";
-      int datatype = TFLOAT;
-      float value = mIt->second;
+      int datatype = TDOUBLE;
+      double value = mIt->second;
       fits_update_key(fptr, datatype, keyname, &value,comment, &status);
     }
     
