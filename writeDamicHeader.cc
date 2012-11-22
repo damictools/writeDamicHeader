@@ -44,7 +44,7 @@ bool readStatsFile(const string &statsFile, map<string,double> &mCards){
     in.getline(line,kMaxLine);
     
     string lineS(line);
-    unsigned int found = lineS.find_first_not_of(" \t\v\r\n");
+    size_t found = lineS.find_first_not_of(" \t\v\r\n");
     if(found == string::npos) continue;
     else if( line[found] == '#') continue;
     
