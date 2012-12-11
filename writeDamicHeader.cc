@@ -163,6 +163,10 @@ bool keepThisCard(const char *card){
 
 int main(int argc, char *argv[])
 {
+  vector<string> vecValTRIMSEC;
+  vector<string> vecValDATASEC;
+  vector<int>    vecNoTRIMSEC;
+  vector<int>    vecNoDATASEC;
   
   string fitsFile = "";
   string statsFile = "";
@@ -216,6 +220,32 @@ int main(int argc, char *argv[])
       fits_update_key(fptr, datatype, keyname, &value,comment, &status);
     }
     
+    {/* check for TRIMSEC */
+      char keyName[] = "TRIMSEC";
+      char record[1024] = "";
+      fits_read_card(fptr, keyName, record, &status);
+      if(status==KEY_NO_EXIST){
+	vecNoTRIMSEC.push_back(n);
+	status=0;
+      }
+      else{
+	vecValTRIMSEC.push_back(record);
+      }
+    }
+    
+    {/* check for DATASEC */
+      char keyName[] = "DATASEC";
+      char record[1024] = "";
+      fits_read_card(fptr, keyName, record, &status);
+      if(status==KEY_NO_EXIST){
+	vecNoDATASEC.push_back(n);
+	status=0;
+      }
+      else{
+	vecValDATASEC.push_back(record);
+      }
+    }
+    
     
     for ( map<string,double>::const_iterator mIt = mCards.begin();mIt != mCards.end(); ++mIt ){
       const char *keyname = mIt->first.c_str();
@@ -226,6 +256,61 @@ int main(int argc, char *argv[])
     }
     
   }
+  
+  if(vecValTRIMSEC.size()>0){/* Add TRIMSEC card to the HDUs that dont have it */
+  
+    if(vecValTRIMSEC.size()>1){
+      sort(vecValTRIMSEC.begin(),vecValTRIMSEC.end());
+      vector<string>::iterator it = unique(vecValTRIMSEC.begin(),vecValTRIMSEC.end());
+      vecValTRIMSEC.resize( it - vecValTRIMSEC.begin() );
+    }
+    if(vecValTRIMSEC.size()!=1){
+      cerr << "WARNING: there is more than one TRIMSEC value. Will use the first one but this may be wrong.\n\n";
+    }
+    
+    for(unsigned int i=0; i<vecNoTRIMSEC.size(); ++i){  /* Loop through extensions with no TRIMSEC */
+      
+      int n=vecNoTRIMSEC[i];
+      
+      int hdutype;
+      fits_movabs_hdu(fptr, n, &hdutype, &status);
+      
+      int nkeys=0;
+      fits_get_hdrspace(fptr, &nkeys, NULL, &status);
+      
+      /* Add TRIMSEC key */
+      fits_write_record(fptr, vecValTRIMSEC[0].c_str(), &status);
+	  
+    }
+  }
+  
+  if(vecValDATASEC.size()>0){/* Add DATASEC card to the HDUs that dont have it */
+  
+    if(vecValDATASEC.size()>1){
+      sort(vecValDATASEC.begin(),vecValDATASEC.end());
+      vector<string>::iterator it = unique(vecValDATASEC.begin(),vecValDATASEC.end());
+      vecValDATASEC.resize( it - vecValDATASEC.begin() );
+    }
+    if(vecValDATASEC.size()!=1){
+      cerr << "WARNING: there is more than one DATASEC value. Will use the first one but this may be wrong.\n\n";
+    }
+    
+    for(unsigned int i=0; i<vecNoDATASEC.size(); ++i){  /* Loop through extensions with no DATASEC */
+      
+      int n=vecNoDATASEC[i];
+      
+      int hdutype;
+      fits_movabs_hdu(fptr, n, &hdutype, &status);
+      
+      int nkeys=0;
+      fits_get_hdrspace(fptr, &nkeys, NULL, &status);
+      
+      /* Add DATASEC key */
+      fits_write_record(fptr, vecValDATASEC[0].c_str(), &status);
+	  
+    }
+  }
+  
   
   fits_close_file(fptr, &status);
   

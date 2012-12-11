@@ -9,7 +9,7 @@ OBJECTS = writeDamicHeader.o
 HEADERS = 
 
 ALL : writeDamicHeader.exe
-	echo "Listo!"
+	@echo "Listo!"
 
 writeDamicHeader.exe : $(OBJECTS)
 	$(CPP) $(OBJECTS) -o writeDamicHeader.exe $(LIBS) $(GLIBS) $(CFLAGS)
