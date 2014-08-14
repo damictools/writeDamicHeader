@@ -150,6 +150,8 @@ bool keepThisCard(const char *card){
   cardList.push_back("BSCALE  ");
   cardList.push_back("TRIMSEC ");
   cardList.push_back("DATASEC ");
+  cardList.push_back("CHECKSUM");
+  cardList.push_back("DATASUM ");
   
   for(unsigned int i=0;i<cardList.size();++i){
     if(strncmp(card,cardList[i].c_str(),8) ==0)
